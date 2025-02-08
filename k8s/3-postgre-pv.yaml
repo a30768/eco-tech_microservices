@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-volume
+  labels:
+    app: postgres-eco-tech
+spec:
+  storageClassName: standard  # Usando "standard" para compatibilidade com Minikube
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce  # Correção para PostgreSQL
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/data/postgres"  # Melhor organização para Minikube

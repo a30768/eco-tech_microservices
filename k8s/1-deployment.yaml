@@ -1,0 +1,166 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: a30768/api-gateway:latest
+        imagePullPolicy: Never
+        env:
+          - name: APP_PORT
+            value: "3000"
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users-service
+  template:
+    metadata:
+      labels:
+        app: users-service
+    spec:
+      containers:
+      - name: users-service
+        image: a30768/users-service:latest
+        imagePullPolicy: Never
+        env:
+          - name: DB_HOST
+            value: "postgres-eco-tech"
+          - name: DB_USER
+            value: "postgres"
+          - name: DB_PASSWORD
+            value: "eco-techmaterials"
+          - name: DB_NAME
+            value: "postgres"
+          - name: DB_PORT
+            value: "5432"
+        ports:
+        - containerPort: 3001
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: request-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: request-service
+  template:
+    metadata:
+      labels:
+        app: request-service
+    spec:
+      containers:
+      - name: request-service
+        image: a30768/request-service:latest
+        imagePullPolicy: Never
+        env:
+          - name: DB_HOST
+            value: "postgres-eco-tech"
+          - name: DB_USER
+            value: "postgres"
+          - name: DB_PASSWORD
+            value: "eco-techmaterials"
+          - name: DB_NAME
+            value: "postgres"
+          - name: DB_PORT
+            value: "5432"
+        ports:
+        - containerPort: 3002
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-eco-tech
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-eco-tech
+  template:
+    metadata:
+      labels:
+        app: postgres-eco-tech
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        env:
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "eco-techmaterials"
+        - name: POSTGRES_DB
+          value: "postgres"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - mountPath: "/var/lib/postgresql/data"
+          name: postgres-storage
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc

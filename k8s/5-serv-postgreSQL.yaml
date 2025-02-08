@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-eco-tech
+  labels:
+    app: postgres-eco-tech
+spec:
+  type: ClusterIP  # O banco de dados só precisa ser acessado internamente
+  clusterIP: None  # Necessário para StatefulSet, garantindo DNS estável para os pods
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres-eco-tech

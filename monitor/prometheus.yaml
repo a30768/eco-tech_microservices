@@ -1,0 +1,18 @@
+// prometheus.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: eco-tech-monitor
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: eco-tech
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
+    scrapeTimeout: 10s
+
+    # O arquivo prometheus.yaml foi atualizado para incluir um intervalo de recolha de métricas de 15s e um timeout de 10s

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  labels:
+    app: postgres-eco-tech
+spec:
+  storageClassName: standard  # Usando "standard" para compatibilidade com Minikube
+  accessModes:
+    - ReadWriteOnce  # Melhor para PostgreSQL
+  resources:
+    requests:
+      storage: 5Gi

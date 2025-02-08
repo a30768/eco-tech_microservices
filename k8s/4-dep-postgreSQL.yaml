@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-eco-tech
+  labels:
+    app: postgres-eco-tech
+spec:
+  serviceName: "postgres-eco-tech"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-eco-tech
+  template:
+    metadata:
+      labels:
+        app: postgres-eco-tech
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15  # Definir versão estável
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "eco-techmaterials"
+            - name: POSTGRES_DB
+              value: "postgres"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgresql-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "standard"
+        resources:
+          requests:
+            storage: 5Gi

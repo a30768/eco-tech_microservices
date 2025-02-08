@@ -1,0 +1,54 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "443:3000"
+    volumes:
+      - ./certs:/app/certs
+    networks:
+      - microservices-network
+
+  users-service:
+    build: ./users-service
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgres://postgres:eco-techmaterials@postgres-eco-tech:5432/postgres
+    depends_on:
+      - postgres-eco-tech
+    networks:
+      - microservices-network
+
+  request-service:
+    build: ./request-service
+    ports:
+      - "3002:3002"
+    environment:
+      - DATABASE_URL=postgres://postgres:eco-techmaterials@postgres-eco-tech:5432/postgres
+    depends_on:
+      - postgres-eco-tech
+    networks:
+      - microservices-network
+
+  postgres-eco-tech:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: eco-techmaterials
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
