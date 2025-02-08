@@ -1,0 +1,92 @@
+name: Eco-Tech CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checar o código do repositório
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      # 2. Configurar Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      # 3. Instalar dependências e rodar testes para cada serviço
+      - name: Install dependencies
+        run: |
+          cd api-gateway && npm install && cd ..
+          cd users-service && npm install && cd ..
+          cd request-service && npm install && cd ..
+
+      - name: Run tests
+        run: |
+          cd api-gateway && npm test && cd ..
+          cd users-service && npm test && cd ..
+          cd request-service && npm test && cd ..
+
+  build-and-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checar o código do repositório
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      # 2. Login no Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 3. Construir e enviar imagens Docker para cada serviço
+      - name: Build and push Docker images
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest ./api-gateway
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest
+
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/users-service:latest ./users-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/users-service:latest
+
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/request-service:latest ./request-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/request-service:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checar o código do repositório
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      # 2. Configurar kubectl
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      # 3. Autenticar no cluster Kubernetes
+      - name: Set up Kubeconfig
+        run: echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > $HOME/.kube/config
+
+      # 4. Aplicar os manifests Kubernetes
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/1-deployment.yaml
+          kubectl apply -f k8s/1-service.yaml
+          kubectl apply -f k8s/2-postgre-pvc.yaml
+          kubectl apply -f k8s/3-postgre-pv.yaml
+          kubectl apply -f k8s/4-dep-postgreSQL.yaml
+          kubectl apply -f k8s/5-serv-postgreSQL.yaml
