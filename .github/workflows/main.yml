@@ -28,13 +28,13 @@ jobs:
         run: |
           cd api-gateway && npm install && cd ..
           cd users-service && npm install && cd ..
-          cd request-service && npm install && cd ..
+          cd requests-service && npm install && cd ..
 
       - name: Run tests
         run: |
           cd api-gateway && npm test && cd ..
           cd users-service && npm test && cd ..
-          cd request-service && npm test && cd ..
+          cd requests-service && npm test && cd ..
 
   build-and-push:
     needs: build-and-test
@@ -61,7 +61,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/users-service:latest
 
           docker build -t ${{ secrets.DOCKER_USERNAME }}/request-service:latest ./request-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/request-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/requests-service:latest
 
   deploy:
     needs: build-and-push
